@@ -1,0 +1,36 @@
+version: '3.4'
+
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+networks:
+  subnet_0:
+    driver: bridge
+
+volumes:
+  mysql-data: {}
+
+secrets: {}
+
+services:
+  mysql:
+    container_name: mysql
+    hostname: mysql
+    image: mysql:8.0.30-debian
+    ports:
+      - '3306:3306'
+      - '33060:33060'
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASS:-admin}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-events}
+      TZ: 'America/Sao_Paulo'
+    networks:
+      - subnet_0
+    restart: on-failure
+    volumes:
+      - mysql-data:/var/lib/mysql
+    logging: *logging
