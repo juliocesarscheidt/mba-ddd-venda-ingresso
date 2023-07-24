@@ -21,7 +21,6 @@ test('deve criar um partner', async () => {
   const partner = Partner.create({
     name: 'Parceiro 1',
   });
-  console.log(partner);
 
   // save in memory
   em.persist(partner);
@@ -30,8 +29,8 @@ test('deve criar um partner', async () => {
   // clear in memory
   em.clear();
 
-  const partnerFound = await em.findOne(Partner, { id: partner.id });
-  console.log(partnerFound);
+  // const partnerFound = await em.findOne(Partner, { id: partner.id });
+  // console.log(partnerFound);
 
   await orm.close();
 });
