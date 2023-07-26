@@ -5,7 +5,7 @@ import {
 } from '../../../../@core/common/domain/my-collection';
 import { Entity } from '../../../../@core/common/domain/entity';
 import Uuid from '../../../../@core/common/domain/value-objects/uuid.vo';
-import { EventSpot } from './event-spot';
+import { EventSpot, EventSpotId } from './event-spot';
 
 export class EventSectionId extends Uuid {}
 
@@ -78,6 +78,40 @@ export class EventSection extends Entity {
 
   changePrice(price: number) {
     this.price = price;
+  }
+
+  changeLocation(command: { spot_id: EventSpotId; location: string }) {
+    const spot = this._spots.find((spot) => spot.id.equals(command.spot_id));
+    if (!spot) {
+      throw new Error('Spot not found');
+    }
+    spot.changeLocation(command.location);
+  }
+
+  allowReserverSpot(spot_id: EventSpotId) {
+    if (!this.is_published) return false;
+
+    const spot = this._spots.find((spot) => spot.id.equals(spot_id));
+    if (!spot) {
+      throw new Error('Spot not found');
+    }
+
+    if (spot.is_reserved) return false;
+    if (!spot.is_published) return false;
+
+    return true;
+  }
+
+  markSpotAsReserved(spot_id: EventSpotId) {
+    const spot = this._spots.find((spot) => spot.id.equals(spot_id));
+    if (!spot) {
+      throw new Error('Spot not found');
+    }
+    if (spot.is_reserved) {
+      throw new Error('Spot already reserved');
+    }
+    spot.markAsReserved();
+    this.total_spots_reserved++;
   }
 
   publishAll() {
