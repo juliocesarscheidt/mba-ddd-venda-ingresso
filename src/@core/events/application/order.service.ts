@@ -7,6 +7,7 @@ import { ISpotReservationRepository } from '../domain/repositories/spot-reservat
 import { SpotReservation } from '../domain/entities/spot-reservation.entity';
 import { Order } from '../domain/entities/order.entity';
 import { EventSpotId } from '../domain/entities/event-spot';
+import { PaymentGateway } from './payment.gateway';
 
 export class OrderService {
   constructor(
@@ -15,6 +16,7 @@ export class OrderService {
     private eventRepository: IEventRepository,
     private spotReservationRepository: ISpotReservationRepository,
     private uow: IUnitOfWork,
+    private paymentGateway: PaymentGateway,
   ) {}
 
   list() {
@@ -26,6 +28,7 @@ export class OrderService {
     section_id: string;
     spot_id: string;
     customer_id: string;
+    card_token: string;
   }) {
     const customer = await this.customerRepository.findById(input.customer_id);
     if (!customer) {
@@ -50,29 +53,61 @@ export class OrderService {
       throw new Error('Spot already reserved');
     }
 
-    const spotReservationCreated = SpotReservation.create({
-      spot_id: spotId,
-      customer_id: customer.id,
+    // iniciar transacao
+    return this.uow.runTransaction(async () => {
+      const spotReservationCreated = SpotReservation.create({
+        spot_id: spotId,
+        customer_id: customer.id,
+      });
+      await this.spotReservationRepository.add(spotReservationCreated);
+
+      try {
+        await this.uow.commit();
+
+        const section = event.sections.find((section) =>
+          section.id.equals(sectionId),
+        );
+
+        // pagamento
+        await this.paymentGateway.payment({
+          token: input.card_token,
+          amount: section.price,
+        });
+
+        const order = Order.create({
+          customer_id: customer.id,
+          event_spot_id: spotId,
+          amount: section.price,
+        });
+        order.pay();
+        await this.orderRepository.add(order);
+
+        event.markSpotAsReserved({ section_id: sectionId, spot_id: spotId });
+
+        await this.eventRepository.add(event);
+
+        await this.uow.commit();
+
+        return order;
+      } catch (error) {
+        // console.error(error);
+
+        const section = event.sections.find((section) =>
+          section.id.equals(sectionId),
+        );
+
+        const order = Order.create({
+          customer_id: customer.id,
+          event_spot_id: spotId,
+          amount: section.price,
+        });
+        await this.orderRepository.add(order);
+
+        order.cancel();
+
+        await this.uow.commit();
+        throw new Error('Aconteceu um erro ao reservar o seu lugar');
+      }
     });
-    await this.spotReservationRepository.add(spotReservationCreated);
-
-    const section = event.sections.find((section) =>
-      section.id.equals(sectionId),
-    );
-
-    const order = Order.create({
-      customer_id: customer.id,
-      event_spot_id: spotId,
-      amount: section.price,
-    });
-    await this.orderRepository.add(order);
-
-    event.markSpotAsReserved({ section_id: sectionId, spot_id: spotId });
-
-    await this.eventRepository.add(event);
-
-    await this.uow.commit();
-
-    return order;
   }
 }

@@ -17,6 +17,7 @@ import { Partner } from '../../domain/entities/partner.entity';
 import { OrderMysqlRepository } from '../../infra/db/repositories/order-mysql.repository';
 import { SpotReservationMysqlRepository } from '../../infra/db/repositories/spot-reservation-mysql.repository';
 import { OrderService } from '../order.service';
+import { PaymentGateway } from '../payment.gateway';
 
 test('deve criar uma order', async () => {
   const orm = await MikroORM.init<MySqlDriver>({
@@ -75,10 +76,11 @@ test('deve criar uma order', async () => {
   await eventRepo.add(event);
 
   await unitOfWork.commit();
-  await em.clear();
+  em.clear();
 
   const orderRepo = new OrderMysqlRepository(em);
   const spotReservationRepo = new SpotReservationMysqlRepository(em);
+  const paymentGateway = new PaymentGateway();
 
   const orderService = new OrderService(
     orderRepo,
@@ -86,28 +88,35 @@ test('deve criar uma order', async () => {
     eventRepo,
     spotReservationRepo,
     unitOfWork,
+    paymentGateway,
   );
 
   const spotId = event.sections[0].spots[0].id.value;
 
-  await orderService.create({
+  const op1 = orderService.create({
     event_id: event.id.value,
     section_id: event.sections[0].id.value,
     customer_id: customer.id.value,
     spot_id: spotId,
+    card_token: 'tok_visa',
+  });
+
+  const op2 = orderService.create({
+    event_id: event.id.value,
+    section_id: event.sections[0].id.value,
+    customer_id: customer.id.value,
+    spot_id: spotId,
+    card_token: 'tok_visa',
   });
 
   try {
-    await orderService.create({
-      event_id: event.id.value,
-      section_id: event.sections[0].id.value,
-      customer_id: customer.id.value,
-      spot_id: spotId,
-    });
+    await Promise.all([op1, op2]);
     expect(true).toBe(false);
   } catch (error) {
-    console.log(error);
-    expect(error.message).toBe('Spot not available');
+    // console.log(error);
+    expect(error.message).toBe('Aconteceu um erro ao reservar o seu lugar');
+    // console.log(await orderRepo.findAll());
+    // console.log(await spotReservationRepo.findAll());
   }
 
   await orm.close();
