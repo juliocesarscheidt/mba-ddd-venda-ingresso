@@ -47,7 +47,7 @@ export class Partner extends AggregateRoot {
 
   toJSON(): any {
     return {
-      id: this.id,
+      id: this.id.value,
       name: this.name,
     };
   }

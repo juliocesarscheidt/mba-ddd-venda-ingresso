@@ -12,7 +12,7 @@ export class PartnerService {
     return this.partnerRepository.findAll();
   }
 
-  async register(input: { name: string }) {
+  async create(input: { name: string }) {
     const partner = Partner.create(input);
     this.partnerRepository.add(partner);
     await this.uow.commit();

@@ -36,10 +36,11 @@ export class Customer extends AggregateRoot {
     this.name = name;
   }
 
+  // metodo usado para serializar o objeto pelo NestJS
   toJSON(): any {
     return {
-      id: this.id,
-      cpf: this.cpf,
+      id: this.id.value,
+      cpf: this.cpf.value,
       name: this.name,
     };
   }

@@ -11,7 +11,7 @@ export class EventService {
     private uow: IUnitOfWork,
   ) {}
 
-  list() {
+  findEvents() {
     return this.eventRepository.findAll();
   }
 
@@ -62,16 +62,14 @@ export class EventService {
     return event;
   }
 
-  async addSection(
-    id: string,
-    input: {
-      name: string;
-      description?: string | null;
-      total_spots: number;
-      price: number;
-    },
-  ) {
-    const event = await this.eventRepository.findById(id);
+  async addSection(input: {
+    name: string;
+    description?: string | null;
+    total_spots: number;
+    price: number;
+    event_id: string;
+  }) {
+    const event = await this.eventRepository.findById(input.event_id);
     if (!event) {
       throw new Error('Event not found');
     }
