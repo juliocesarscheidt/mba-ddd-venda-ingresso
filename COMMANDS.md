@@ -2,9 +2,11 @@
 ```bash
 
 docker-compose up -d mysql
+docker-compose up -d rabbitmq redis
 
 
 docker-compose logs -f --tail 100 mysql
+docker-compose logs -f --tail 100 rabbitmq redis
 
 
 docker-compose exec mysql sh -c "mysql -uroot -padmin -e 'show tables from events'"

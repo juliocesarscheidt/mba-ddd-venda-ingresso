@@ -34,3 +34,29 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     logging: *logging
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:7.0.8-alpine
+    ports:
+      - 6379:6379
+    networks:
+      - subnet_0
+    restart: on-failure
+    logging: *logging
+
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:3.8-management-alpine
+    ports:
+      - 15672:15672
+      - 5672:5672
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    networks:
+      - subnet_0
+    restart: on-failure
+    logging: *logging
