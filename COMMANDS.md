@@ -20,9 +20,15 @@ docker-compose exec mysql sh -c "mysql -uroot -padmin -e 'select * from events.p
 docker-compose exec mysql sh -c "mysql -uroot -padmin -e 'select * from events.spot_reservation'"
 
 
-yarn run test
+yarn test
+
 
 yarn start:dev
+
+yarn start:dev mba-ddd-venda-ingresso
+
+yarn start:dev emails
+
 
 
 npx mikro-orm schema:fresh --run

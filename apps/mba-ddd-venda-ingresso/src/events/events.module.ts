@@ -35,9 +35,12 @@ import { OrdersController } from './orders/orders.controller';
 import { ApplicationModule } from '../application/application.module';
 import { ApplicationService } from '../@core/common/application/application.service';
 import { DomainEventManager } from '../@core/common/domain/domain-event-manager';
-import { PartnerCreated } from '../@core/events/domain/domain-events/partner-created.event';
 import { MyHandlerHandler } from '../@core/events/application/handlers/apps/my-handler.handler';
 import { ModuleRef } from '@nestjs/core';
+import { BullModule, InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { PartnerCreated } from '../@core/events/domain/domain-events/partner-created.event';
+import { PartnerCreatedIntegrationEvent } from '../@core/events/domain/integration-events/partner-created.int-event';
 
 @Module({
   imports: [
@@ -51,6 +54,9 @@ import { ModuleRef } from '@nestjs/core';
       SpotReservationSchema,
     ]),
     ApplicationModule,
+    BullModule.registerQueue({
+      name: 'integration-events',
+    }),
   ],
   providers: [
     {
@@ -151,6 +157,8 @@ export class EventsModule implements OnModuleInit {
   constructor(
     private readonly domainEventManager: DomainEventManager,
     private moduleRef: ModuleRef,
+    @InjectQueue('integration-events')
+    private integrationEventsQueue: Queue,
   ) {}
 
   onModuleInit() {
@@ -162,6 +170,11 @@ export class EventsModule implements OnModuleInit {
         );
         await handler.handle(event);
       });
+    });
+    this.domainEventManager.register(PartnerCreated.name, async (event) => {
+      const integrationEvent = new PartnerCreatedIntegrationEvent(event);
+      console.log('integrationEvent', integrationEvent);
+      await this.integrationEventsQueue.add(integrationEvent);
     });
   }
 }

@@ -6,7 +6,7 @@ import {
   OrderSchema,
   PartnerSchema,
   SpotReservationSchema,
-} from './src/@core/events/infra/db/schemas';
+} from './apps/mba-ddd-venda-ingresso/src/@core/events/infra/db/schemas';
 
 export default {
   entities: [

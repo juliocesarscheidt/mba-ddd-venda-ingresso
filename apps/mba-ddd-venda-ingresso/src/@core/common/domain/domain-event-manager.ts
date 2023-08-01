@@ -1,5 +1,6 @@
 import { AggregateRoot } from './aggregate-root';
-import EventEmitter2 from 'eventemitter2';
+// import EventEmitter2 from 'eventemitter2'; // this doesnt work
+import { EventEmitter2 } from 'eventemitter2';
 
 export class DomainEventManager {
   eventEmitter: EventEmitter2;

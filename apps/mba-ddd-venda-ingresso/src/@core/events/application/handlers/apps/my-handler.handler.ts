@@ -2,7 +2,7 @@ import { PartnerCreated } from '../../../../../@core/events/domain/domain-events
 import { DomainEventManager } from '../../../../../@core/common/domain/domain-event-manager';
 import { IPartnerRepository } from '../../../../../@core/events/domain/repositories/partner-repository.interface';
 import { IDomainEventHandler } from '../../../../../@core/common/application/domain-event-handler.interface';
-import { PartnerNameChanged } from 'src/@core/events/domain/domain-events/partner-name-changed.event';
+import { PartnerNameChanged } from '../../../../../@core/events/domain/domain-events/partner-name-changed.event';
 
 export class MyHandlerHandler implements IDomainEventHandler {
   constructor(
