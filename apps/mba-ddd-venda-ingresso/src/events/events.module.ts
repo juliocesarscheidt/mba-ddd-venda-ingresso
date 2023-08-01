@@ -176,5 +176,9 @@ export class EventsModule implements OnModuleInit {
       console.log('integrationEvent', integrationEvent);
       await this.integrationEventsQueue.add(integrationEvent);
     });
+    // all events
+    // this.domainEventManager.register('*', async (event) => {
+    //   console.log('event', event);
+    // });
   }
 }
